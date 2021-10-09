@@ -25,7 +25,7 @@ public class Table : MonoBehaviour
     private int _gridCellSize;
 
     public static Table Instance; // Синглтон
-
+//
     public List<TablePlace> TablePlaces { get => _tablePlaces; }
     public int TableSize { get => _tableSize; }
 
