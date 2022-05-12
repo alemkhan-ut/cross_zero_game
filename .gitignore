@@ -5,6 +5,16 @@
 [Bb]uilds/
 Assets/AssetStoreTools*
 
+#Only code
+[Aa]ssets/Plugins
+[Aa]ssets/Scenes
+[Aa]ssets/Prefabs
+[Aa]ssets/Sprites
+[Ll]ogs/
+[Pp]ackages/
+[Pp]rojectSettings/
+[Uu]serSettings/
+
 # Visual Studio cache directory
 .vs/
 
@@ -35,3 +45,9 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+# Graphics
+*.png
+
+# Only code
+*.meta
