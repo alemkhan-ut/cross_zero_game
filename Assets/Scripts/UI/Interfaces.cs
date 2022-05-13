@@ -1,5 +1,6 @@
 ﻿/// Данный скрипт выполняет роль управления всем интерфейсом в игре. Включает в себе паттерн Singleton
 
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 

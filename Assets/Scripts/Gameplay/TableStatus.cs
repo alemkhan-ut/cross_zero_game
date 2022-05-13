@@ -1,5 +1,6 @@
 ﻿// Данный скрипт позволяет отслеживать и контролировать состояние игрового стола. Включает в себе паттерн Singleton
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,6 +10,11 @@ public class TableStatus : MonoBehaviour
     [SerializeField] private CommandType _winnerCommand; // Ссылка на созданное перечисление
     [SerializeField] private bool _canPlay; // флаг который определяет возможно ли игра, подразумивает аналог паузы, или возможность остановить взаимодейтвие с игровыми обьектами
 
+    private DateTime _startDateTime = new DateTime();
+    private DateTime _endDateTime = new DateTime();
+
+    private int _totalPlayingMatchCount;
+
     // Ссылки на другие классы 
     private Interfaces _interfaces;
     private Table _table;
@@ -17,6 +23,7 @@ public class TableStatus : MonoBehaviour
     public bool CanPlay { get => _canPlay; } // Открытие доступа для чтения через свойство
     public CommandType WinnerCommand { get => _winnerCommand; } // Открытие доступа для чтения через свойство
 
+    [Serializable]
     public enum CommandType // Перечисление для определения команды
     {
         None, // Базовое значение
@@ -28,12 +35,15 @@ public class TableStatus : MonoBehaviour
     {
         Instance = this; // Реализация Синглтона
     }
+
     private void Start()
     {
         // Инициализация полей через паттерн Синглтон
 
         _interfaces = Interfaces.Instance;
         _table = Table.Instance;
+
+        _startDateTime = DateTime.Now;
 
         SetQueue(CommandType.Cross); // Установка очереди на старте крестикам, они ходят первые
     }
@@ -59,17 +69,46 @@ public class TableStatus : MonoBehaviour
         {
             _canPlay = false; // Останавливаем игру
 
-            _interfaces.OpenWinnerWindow();
+            OpenResultWindow(false);
         }
         else // Иначе если победитель не найден, то есть базовое значение то,
         if (_table.CheckForFullness()) // Проверяем стол на заполненность, есть ли на нём место для хода
         {
-            _interfaces.OpenDrawWindow(); // Если нет, открывает окно с ничьей
+            OpenResultWindow(true);
         }
 
         _commandQueue = GetQueue() == CommandType.Cross ? CommandType.Zero : CommandType.Cross; // Вне зависимости от условий выше, узнаем тип команды текущей очереди
 
         _interfaces.CommandTypeQueue_Text.text = _commandQueue == CommandType.Cross ? "КРЕСТИКИ" : "НОЛИКИ"; // Указываем в интерфейсе кто ходит следующий
+    }
+
+    private void OpenResultWindow(bool isDraw)
+    {
+        if (isDraw)
+        {
+            _interfaces.OpenDrawWindow(); // Если нет, открывает окно с ничьей
+        }
+        else
+        {
+            _interfaces.OpenWinnerWindow();
+        }
+
+        _endDateTime = DateTime.Now;
+
+        _totalPlayingMatchCount = PlayerPrefs.GetInt(SaveManager.TOTAL_PLAYING_MATCHS, 0);
+
+        _totalPlayingMatchCount++;
+
+        PlayerPrefs.SetInt(SaveManager.TOTAL_PLAYING_MATCHS, _totalPlayingMatchCount);
+
+        MatchData matchData = new MatchData();
+        matchData.index = _totalPlayingMatchCount;
+        matchData.winnerCommandType = FindWinner();
+        matchData.matchStartDateTime = DateFormater.GetFullShortDate(_startDateTime);
+        matchData.matchEndDateTime = DateFormater.GetFullShortDate(_endDateTime);
+        matchData.matchDuration = DateFormater.GetFormatingDurationTime(_startDateTime, _endDateTime);
+
+        SaveManager.Instance.SaveMatchData(matchData);
     }
 
     public CommandType FindWinner() // Поиск победителя, возвращает типа команды
